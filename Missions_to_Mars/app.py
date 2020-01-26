@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 # Import scrape_mars
 import scrape_mars
 
@@ -9,7 +9,7 @@ import pymongo
 app = Flask(__name__)
 
 # Create connection variable
-conn = 'mongodb://localhost:27017/mission_to_mars'
+conn = 'mongodb://localhost:27017/mission'
 
 # Pass connection to the pymongo instance.
 client = pymongo.MongoClient(conn)
@@ -17,16 +17,16 @@ client = pymongo.MongoClient(conn)
 # Set route
 @app.route("/")
 def index():
-    mars = client.db.mars.find_one()
-    return render_template("index.html", mars=mars)
+    mars = client.missionDb.mars.find_one()
+    return render_template("index.html", mars = mars)
 
 # Scrape 
 @app.route("/scrape")
 def scrape():
-    mars = client.db.mars
+    mars = client.missionDb.mars 
     mars_data = scrape_mars.scrape()
-    mars.update({}, mars_data)
-    return "Scraped!"
+    mars.update({}, mars_data, upsert=True)
+    return redirect("http://localhost:5000/", code=302)
 
 if __name__ == "__main__":
     app.run(debug=True)
